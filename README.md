@@ -1,1 +1,3 @@
-# homey-mqtt
+# MQTT
+
+Adds support for MyBrand devices.

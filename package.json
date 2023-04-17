@@ -1,0 +1,19 @@
+{
+  "name": "se.egelberg.mqtt",
+  "version": "1.0.2",
+  "main": "app.js",
+  "scripts": {
+    "git-commit": "git add -A && git push && git commit -m '-' && git push"
+
+  },
+  "devDependencies": {
+    "@tsconfig/node12": "^1.0.11",
+    "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.4",
+    "@types/node": "^18.15.11"
+  },
+  "dependencies": {
+    "homey-api": "^1.5.26",
+    "mqtt": "^4.3.7",
+    "mqtt-async": "^1.0.42"
+  }
+}

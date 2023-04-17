@@ -1,0 +1,30 @@
+{
+    "id": "se.egelberg.mqtt",
+    "version": "1.0.1",
+    "compatibility": ">=5.0.0",
+    "sdk": 3,
+    "platforms": [
+      "local"
+    ],
+    "name": {
+      "en": "MQTT"
+    },
+    "description": {
+      "en": "Exposes devices to MQTT."
+    },
+    "category": [
+      "tools"
+    ],
+    "permissions": [
+      "homey:manager:api"
+    ],
+    "images": {
+      "small": "/assets/images/small.png",
+      "large": "/assets/images/large.png",
+      "xlarge": "/assets/images/xlarge.png"
+    },
+    "author": {
+      "name": "Magnus Egelberg",
+      "email": "magnus@egelberg.se"
+    }
+  }
