@@ -39,17 +39,9 @@ class MyApp extends Homey.App {
 
 		this.name = await this.api.system.getSystemName();
 
-		//this.debug(`Fetching system...`);
-		//this.debug(await this.api.system.getInfo());
+        await this.cleanUp();
 
 		this.log(`Connecting to MQTT broker ${this.config.mqtt.host}:${this.config.mqtt.port}.`);
-/*
-		this.mqtt = MqttAsync.connect(this.config.mqtt.host, {
-			username: this.config.mqtt.username,
-			password: this.config.mqtt.password,
-			port: this.config.mqtt.port
-		});
-*/
 
 		this.mqtt = MqttAsync(Mqtt.connect(this.config.mqtt.host, {
 			username: this.config.mqtt.username,
@@ -71,12 +63,6 @@ class MyApp extends Homey.App {
                 let deviceID = parts.pop();
                 let deviceCapabilityID = `${deviceID}/${capabilityID}`;
     
-                /*
-                for (let [capabilityID, capability] of Object.entries(device.capabilitiesObj)) {
-                    await this.publish(`devices/${deviceID}/${capabilityID}`, capability.value);
-                }
-                */
-
                 try {
                     let instance = this.instances[deviceCapabilityID];
                     let capability = this.capabilities[deviceCapabilityID];
@@ -122,6 +108,52 @@ class MyApp extends Homey.App {
  
 	}
 
+    cleanUp() {
+
+        let options = this.config.mqtt;
+
+        return new Promise((resolve, reject) =>  {
+    
+            let mqtt = null;
+            let timer = null;
+    
+            let resetTimeout = (timeout = 1000) => {
+                clearTimeout(timer);
+    
+                timer = setTimeout(() => {
+                    if (mqtt != null) {
+                        mqtt.end();
+                    }
+                    resolve();
+                }, timeout);
+            };
+    
+            mqtt = MqttAsync(Mqtt.connect(options.host, {
+                username: options.username,
+                password: options.password,
+                port: options.port,
+                topic: options.topic
+            }));
+    
+            mqtt.on('connect', async () => {
+                resetTimeout();
+    
+                mqtt.on('message', async (topic, message) => {
+                    if (message != "") {
+                        await mqtt.publish(topic, "", {retain:true});
+                        resetTimeout();
+                    }
+                });
+            
+                await mqtt.subscribe(`${options.topic}/#`);
+    
+                
+            });
+    
+            resetTimeout(5000);
+        });
+    }
+
 
 	async publish(topic, value, debug = true) {
 
@@ -130,47 +162,12 @@ class MyApp extends Homey.App {
 
 		await this.mqtt.publish(`${this.config.mqtt.topic}/${topic}`, JSON.stringify(value), {retain:true});
 
-        /*
-        return new Promise((resolve, reject) => {
-			value = JSON.stringify(value);
-
-            if (debug)
-                this.debug(`Publishing ${topic}:${value}.`);
-
-			this.mqtt.publish(`${this.config.mqtt.topic}/${topic}`, value, {retain:true}, (error) => {
-
-				if (error)
-					reject(error);
-				else 
-					resolve();
-			});
-
-	
-		});
-        */
-
 	}
 
     async subscribe(topic) {
 
         this.debug(`Subscribing to topic ${topic}...`);
 		await this.mqtt.subscribe(`${this.config.mqtt.topic}/${topic}`);
-
-        /*
-		return new Promise((resolve, reject) => {
-
-
-			this.mqtt.subscribe(`${this.config.mqtt.topic}/${topic}`, {}, (error) => {
-
-				if (error)
-					reject(error);
-				else 
-					resolve();
-			});
-
-	
-		});
-        */
 
 	}
 
@@ -239,15 +236,6 @@ class MyApp extends Homey.App {
         this.debug(`Finished subscribing to changes.`);
 
     }
-
-
-
-
-
-
-
-
-
 
 	async getApi() {
 		const { HomeyAPIApp } = require('homey-api');
